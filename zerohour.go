@@ -31,3 +31,7 @@ func PreviousSpecificDay(now time.Time, day time.Weekday) time.Time {
 	// otherwise deduct the number of days away from the target day that we currently are
 	return date.Add(-(time.Hour * 24 * time.Duration(d-day)))
 }
+
+func EndOfDay(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 9999, t.Location())
+}
