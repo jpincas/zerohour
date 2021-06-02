@@ -7,7 +7,9 @@ import (
 
 const dateFormat = "Mon Jan 2 15:04:05 -0700 MST 2006"
 
-func TestPreviousZeroHour(t *testing.T) {
+// TODO: redo these 2 nasty tests, remove the parse and format
+
+func TestPreviousUTC(t *testing.T) {
 	testCases := []struct {
 		timeNow, expectedPreviousMidnight string
 	}{
@@ -28,7 +30,7 @@ func TestPreviousZeroHour(t *testing.T) {
 		epm, _ := time.Parse(dateFormat, testCase.expectedPreviousMidnight)
 
 		// run 'previous midnight' and stringify it
-		pm := Previous(tn)
+		pm := PreviousUTC(tn)
 		pmString := pm.Format(dateFormat)
 
 		if !pm.Equal(epm) {
@@ -62,6 +64,62 @@ func TestPreviousSaturdayMidnight(t *testing.T) {
 		if !pm.Equal(epm) {
 			t.Errorf("Previous saturday midnight calculation incorrect. Expected %s; Got %s", testCase.expectedPreviousMidnight, pmString)
 		}
+	}
+
+}
+
+func TestRangeAdjust(t *testing.T) {
+	tests := []struct {
+		name             string
+		from, to         time.Time
+		expectedDaysDiff time.Duration
+	}{
+		{
+			name:             "both blank",
+			from:             time.Time{},
+			to:               time.Time{},
+			expectedDaysDiff: 1,
+		},
+		{
+			name:             "same day, zero times",
+			from:             time.Date(2020, time.January, 2, 0, 0, 0, 0, time.UTC),
+			to:               time.Date(2020, time.January, 2, 0, 0, 0, 0, time.UTC),
+			expectedDaysDiff: 1,
+		},
+		{
+			name:             "same day, random times, from time is before to",
+			from:             time.Date(2020, time.January, 2, 5, 12, 11, 75, time.UTC),
+			to:               time.Date(2020, time.January, 2, 14, 24, 35, 99, time.UTC),
+			expectedDaysDiff: 1,
+		},
+		{
+			name:             "same day, random times, from time is after to",
+			to:               time.Date(2020, time.January, 2, 5, 12, 11, 75, time.UTC),
+			from:             time.Date(2020, time.January, 2, 14, 24, 35, 99, time.UTC),
+			expectedDaysDiff: 1,
+		},
+		{
+			name:             "expect 2 day interval, zero times",
+			from:             time.Date(2020, time.January, 2, 0, 0, 0, 0, time.UTC),
+			to:               time.Date(2020, time.January, 3, 0, 0, 0, 0, time.UTC),
+			expectedDaysDiff: 2,
+		},
+		{
+			name:             "expect 3 day interval, random times, from time is before to",
+			from:             time.Date(2020, time.January, 2, 5, 12, 11, 75, time.UTC),
+			to:               time.Date(2020, time.January, 4, 14, 24, 35, 99, time.UTC),
+			expectedDaysDiff: 3,
+		},
+	}
+
+	for _, test := range tests {
+		diff := DaysDiffIgnoreTime(test.from, test.to)
+		expectedDiff := test.expectedDaysDiff * 24 * time.Hour
+
+		if diff != expectedDiff {
+			t.Errorf("Testing %s.  Expected a diff of %v days, but got %v", test.name, expectedDiff, diff)
+		}
+
 	}
 
 }
