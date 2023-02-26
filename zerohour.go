@@ -2,6 +2,8 @@ package zerohour
 
 import "time"
 
+// Force module update
+
 // EndOfDay returns a time equivalent to the very last microsend of the day corresponding
 // to the supplied time
 func EndOfDay(t time.Time) time.Time {
