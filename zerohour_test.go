@@ -123,3 +123,49 @@ func TestRangeAdjust(t *testing.T) {
 	}
 
 }
+
+func TestStartOfDayInTimeZone(t *testing.T) {
+	tests := []struct {
+		name      string
+		timeZone  string
+		inputTime time.Time
+		expected  time.Time
+		wantErr   bool
+	}{
+		{
+			name:      "timezone that is 4 hours behind UTC in April",
+			timeZone:  "America/New_York",
+			inputTime: time.Date(2023, 4, 27, 3, 30, 0, 0, time.UTC),
+			expected:  time.Date(2023, 4, 27, 4, 0, 0, 0, time.UTC),
+			wantErr:   false,
+		},
+		{
+			name:      "timezone that is 9 hours ahead of UTC in April",
+			timeZone:  "Asia/Tokyo",
+			inputTime: time.Date(2023, 4, 27, 3, 30, 0, 0, time.UTC),
+			expected:  time.Date(2023, 4, 26, 15, 0, 0, 0, time.UTC),
+			wantErr:   false,
+		},
+		{
+			name:      "invalid timezone",
+			timeZone:  "Invalid/Timezone",
+			inputTime: time.Date(2023, 4, 27, 3, 30, 0, 0, time.UTC),
+			expected:  time.Now().UTC(),
+			wantErr:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := StartOfDayInTimeZone(tt.inputTime, tt.timeZone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("StartOfDayInTimeZone() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && !got.Equal(tt.expected) {
+				t.Errorf("StartOfDayInTimeZone() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
