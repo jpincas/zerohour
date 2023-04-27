@@ -18,14 +18,14 @@ func StartOfDay(t time.Time) time.Time {
 
 // StartOfTodayInTimeZone returns the UTC time corresponding to the start of the day
 // that is currently active in a given timezone
-func StartOfTodayInTimeZone(tz string) time.Time {
+func StartOfTodayInTimeZone(tz string) (time.Time, error) {
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
 		return time.Now().UTC(), err
 	}
 
 	t := time.Now().In(loc)
-	return StartOfDay(t).UTC()
+	return StartOfDay(t).UTC(), nil
 }
 
 // FromToIgnoreTime converts a date range ('from' and 'to') dates into their
